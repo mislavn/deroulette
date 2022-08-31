@@ -1,43 +1,34 @@
+#![warn(clippy::all, rust_2018_idioms)]
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")] // hide console window on Windows in release
 
-use eframe::egui;
-
+// When compiling natively:
+#[cfg(not(target_arch = "wasm32"))]
 fn main() {
-    let options = eframe::NativeOptions::default();
+    // Log to stdout (if you run with `RUST_LOG=debug`).
+    tracing_subscriber::fmt::init();
+
+    let native_options = eframe::NativeOptions::default();
     eframe::run_native(
-        "Confirm exit",
-        options,
-        Box::new(|_cc| Box::new(DeRoulette::default())),
+        "eframe template",
+        native_options,
+        Box::new(|cc| Box::new(deroulette::DeRoulette::new(cc))),
     );
 }
 
-#[derive(Default)]
-struct DeRoulette {
-    allowed_to_close: bool,
-    show_confirmation_dialog: bool,
-    name: String,
-}
+// when compiling to web using trunk.
+#[cfg(target_arch = "wasm32")]
+fn main() {
+    // Make sure panics are logged using `console.error`.
+    console_error_panic_hook::set_once();
 
-impl eframe::App for DeRoulette {
-    fn on_close_event(&mut self) -> bool {
-        self.show_confirmation_dialog = true;
-        self.allowed_to_close
-    }
+    // Redirect tracing to console.log and friends:
+    tracing_wasm::set_as_global_default();
 
-    fn update(&mut self, ctx: &egui::Context, frame: &mut eframe::Frame) {
-        egui::CentralPanel::default().show(ctx, |ui| {
-            egui::widgets::global_dark_light_mode_buttons(ui);
-            ui.horizontal(|ui| {
-                ui.label("Your name: ");
-                ui.text_edit_singleline(&mut self.name);
-                if ui.button("Send").clicked() {
-                    self.name = "".to_string();
-                }
-            });
-            if ui.button("Exit").clicked() {
-                self.allowed_to_close = true;
-                frame.close();
-            }
-        });
-    }
+    let web_options = eframe::WebOptions::default();
+    eframe::start_web(
+        "the_canvas_id", // hardcode it
+        web_options,
+        Box::new(|cc| Box::new(deroulette::DeRoulette::new(cc))),
+    )
+    .expect("failed to start eframe");
 }
