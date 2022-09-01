@@ -7,6 +7,7 @@ pub struct DeRoulette {
     #[cfg(not(target_arch = "wasm32"))]
     show_confirmation_dialog: bool,
     name: String,
+    text: String,
 }
 
 impl DeRoulette {
@@ -35,8 +36,8 @@ impl eframe::App for DeRoulette {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         egui::CentralPanel::default().show(ctx, |ui| {
             egui::widgets::global_dark_light_mode_buttons(ui);
+            ui.add(egui::TextEdit::multiline(&mut self.text));
             ui.horizontal(|ui| {
-                ui.label("Your name: ");
                 ui.text_edit_singleline(&mut self.name);
                 if ui.button("Send").clicked() {
                     self.name = "".to_string();
