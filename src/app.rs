@@ -1,3 +1,5 @@
+use libp2p::{identity, PeerId};
+
 /// We derive Deserialize/Serialize so we can persist app state on shutdown.
 #[derive(Default, serde::Deserialize, serde::Serialize)]
 #[serde(default)] // if we add new fields, give them default values when deserializing old state
@@ -47,6 +49,12 @@ impl eframe::App for DeRoulette {
             if ui.button("Exit").clicked() {
                 self.allowed_to_close = true;
                 _frame.close();
+            }
+            if ui.button("Generate key").clicked() {
+                let id_keys = identity::Keypair::generate_ed25519();
+                let peer_id = PeerId::from(id_keys.public());
+                self.text
+                    .push_str(format!("Local peer id: {:?}\n", peer_id).as_str());
             }
         });
     }
