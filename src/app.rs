@@ -1,7 +1,8 @@
 use libp2p::{identity, PeerId};
+use names::Generator;
 
 /// We derive Deserialize/Serialize so we can persist app state on shutdown.
-#[derive(Default, serde::Deserialize, serde::Serialize)]
+#[derive(serde::Deserialize, serde::Serialize)]
 #[serde(default)] // if we add new fields, give them default values when deserializing old state
 pub struct DeRoulette {
     #[cfg(not(target_arch = "wasm32"))]
@@ -10,6 +11,22 @@ pub struct DeRoulette {
     show_confirmation_dialog: bool,
     name: String,
     text: String,
+    username: String,
+}
+
+impl Default for DeRoulette {
+    fn default() -> DeRoulette {
+        let username = Generator::default().next().unwrap();
+        DeRoulette {
+            #[cfg(not(target_arch = "wasm32"))]
+            allowed_to_close: false,
+            #[cfg(not(target_arch = "wasm32"))]
+            show_confirmation_dialog: false,
+            name: "".to_string(),
+            text: format!("username: {}\n", username),
+            username,
+        }
+    }
 }
 
 impl DeRoulette {
